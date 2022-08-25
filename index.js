@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { usuarios } from "./globalVariables.js";
+import { usuarios, tweets } from "./globalVariables.js";
 
 function handleSignup(req) {
   console.log("Recebeu a request \n");
@@ -16,6 +16,37 @@ function handleSignup(req) {
   console.log(usuarios);
 }
 
+function handleTweet(req) {
+  console.log("Recebeu a request de tweet\n");
+
+  let usuarioDoTwitte = usuarios.filter((x) => x.username === req.username);
+
+  if (!usuarioDoTwitte) {
+    console.log("Não está cadastrado");
+    return;
+  }
+
+  let tweet = {
+    username: req.username,
+    tweet: req.tweet,
+    avatar: usuarioDoTwitte[0].avatar,
+  };
+
+  tweets.push(tweet);
+
+  console.log(tweets);
+}
+
+function getLast10Tweets() {
+  let lastTen = [];
+  for (let i = tweets.length - 1; i >= 0; i--) {
+    lastTen.push(tweets[i]);
+    if (lastTen.length == 10) break;
+  }
+
+  return lastTen;
+}
+
 const app = express(); // cria um servidor
 app.use(cors());
 app.use(express.json());
@@ -24,12 +55,21 @@ app.use(express.json());
 app.post("/sign-up", (req, res) => {
   handleSignup(req.body);
 
-  //   res.send("OK");
-  res.send(req.body);
+  res.send("OK");
 });
 
-app.get("/", (req, res) => {
-  res.send("Colé");
+//Tweets
+app.post("/tweet", (req, res) => {
+  handleTweet(req.body);
+
+  res.send("OK");
+});
+
+// Get  Tweets
+app.get("/tweets", (req, res) => {
+  let resposta = getLast10Tweets();
+
+  res.send(resposta);
 });
 
 // configura o servidor pra rodar na porta 4000
