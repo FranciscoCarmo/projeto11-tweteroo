@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/FranciscoCarmo/projeto11-tweteroo/issues"
   },
-  "homepage": "https://github.com/FranciscoCarmo/projeto11-tweteroo#readme"
+  "homepage": "https://github.com/FranciscoCarmo/projeto11-tweteroo#readme",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
 }
