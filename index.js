@@ -95,7 +95,7 @@ app.get("/tweets", (req, res) => {
 app.get("/tweets/:username", (req, res) => {
   let user = req.params.username;
   let resposta = getTwittesFromUser(user);
-
+  if (!resposta || resposta.length === 0) res.sendStatus(400);
   res.send(resposta);
 });
 
