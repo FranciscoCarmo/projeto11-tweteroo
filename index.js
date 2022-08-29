@@ -19,32 +19,39 @@ function handleSignup(req) {
 function handleTweet(req) {
   console.log("Recebeu a request de tweet\n");
 
-  let usuarioDoTwitte = usuarios.filter((x) => x.username === req.username);
+  let usuarioDoTwitte = usuarios.find((x) => x.username === req.headers.user);
 
-  if (!usuarioDoTwitte) {
+  if (!usuarioDoTwitte || usuarioDoTwitte.length === 0) {
     console.log("Não está cadastrado");
     return;
   }
 
   let tweet = {
-    username: req.username,
-    tweet: req.tweet,
-    avatar: usuarioDoTwitte[0].avatar,
+    username: req.headers.user,
+    tweet: req.body.tweet,
+    avatar: usuarioDoTwitte.avatar,
   };
 
-  tweets.push(tweet);
+  tweets.unshift(tweet);
 
   console.log(tweets);
 }
 
-function getLast10Tweets() {
+function getLast10Tweets(page) {
   let lastTen = [];
-  for (let i = tweets.length - 1; i >= 0; i--) {
+  if (page > 1 && tweets.length <= 10) page = 1;
+  for (let i = (page - 1) * 10; i < tweets.length; i++) {
     lastTen.push(tweets[i]);
     if (lastTen.length == 10) break;
   }
 
   return lastTen;
+}
+
+function getTwittesFromUser(user) {
+  let tweetsFromUser = tweets.filter((tweet) => tweet.username == user);
+
+  return tweetsFromUser;
 }
 
 const app = express(); // cria um servidor
@@ -55,19 +62,39 @@ app.use(express.json());
 app.post("/sign-up", (req, res) => {
   handleSignup(req.body);
 
-  res.send("OK");
+  if (!req.body || !req.body.username || !req.body.avatar) {
+    res.status(400).send("Todos os campos são obrigatórios!");
+    return;
+  }
+
+  res.status(201).send("OK");
 });
 
 //Tweets
-app.post("/tweet", (req, res) => {
-  handleTweet(req.body);
+app.post("/tweets", (req, res) => {
+  handleTweet(req);
 
-  res.send("OK");
+  if (!req.body || !req.headers.user || !req.body.tweet) {
+    res.status(400).send("Todos os campos são obrigatórios!");
+    return;
+  }
+
+  res.status(201).send("OK");
 });
 
 // Get  Tweets
 app.get("/tweets", (req, res) => {
-  let resposta = getLast10Tweets();
+  const page = parseInt(req.query.page);
+  if (page < 1) res.status(400).send("Informe uma página válida!");
+  let resposta = getLast10Tweets(page);
+
+  res.send(resposta);
+});
+
+// Get  Tweets from user
+app.get("/tweets/:username", (req, res) => {
+  let user = req.params.username;
+  let resposta = getTwittesFromUser(user);
 
   res.send(resposta);
 });
